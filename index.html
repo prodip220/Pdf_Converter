@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Image to PDF Converter | ছবির সাইজ কমিয়ে পিডিএফ বানান</title>
+    
+    <meta name="description" content="সবচেয়ে দ্রুত এবং নিরাপদ উপায়ে ছবি থেকে পিডিএফ (Image to PDF) তৈরি করুন। কোন সার্ভার আপলোড নেই, সম্পূর্ণ ব্রাউজারের মধ্যে কনভার্ট করুন।">
+    <meta name="keywords" content="image to pdf, free pdf converter, bangla pdf maker, compress pdf, fast pdf converter, ছবি থেকে পিডিএফ">
+    <meta name="author" content="Your Brand Name">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        .drop-area { border: 2px dashed #4F46E5; transition: 0.3s; }
+        .drop-area:hover { background-color: #EEF2FF; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+    <div class="container mx-auto max-w-2xl px-4 py-12">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-indigo-600 mb-2">Fast Image to PDF</h1>
+            <p class="text-gray-600">১০০% নিরাপদ: আপনার ফাইল আপনার ব্রাউজারেই কনভার্ট হবে, কোথাও আপলোড হবে না।</p>
+        </header>
+
+        <div class="bg-white p-8 rounded-2xl shadow-xl border border-gray-100 text-center">
+            <div id="drop-area" class="drop-area p-10 rounded-xl mb-6 cursor-pointer">
+                <p class="text-lg mb-2 font-medium">এখানে ছবি ড্র্যাগ করুন অথবা সিলেক্ট করুন</p>
+                <input type="file" id="fileInput" multiple accept="image/*" class="hidden">
+                <button onclick="document.getElementById('fileInput').click()" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">Select Images</button>
+            </div>
+
+            <div id="preview" class="flex flex-wrap gap-2 mb-6 justify-center"></div>
+
+            <button id="convertBtn" class="hidden w-full bg-green-600 text-white font-bold py-3 rounded-xl shadow-lg hover:bg-green-700 transform hover:scale-105 transition">Generate PDF Now</button>
+        </div>
+
+        <article class="mt-16 prose prose-indigo">
+            <h2 class="text-2xl font-bold mb-4">কেন আমাদের পিডিএফ কনভার্টার সেরা?</h2>
+            <p>অন্যান্য সাইটে আপনার গোপনীয় ফাইল আপলোড করতে হয়, যা অনিরাপদ। আমাদের এই টুলটি <strong>Client-side Processing</strong> প্রযুক্তি ব্যবহার করে, ফলে আপনার ফাইল ইন্টারনেটে আপলোড না করেই দ্রুত পিডিএফ তৈরি হয়।</p>
+            <ul class="list-disc pl-5">
+                <li>পরীক্ষার খাতার ছবির জন্য সেরা (High Quality)।</li>
+                <li>একসাথে অনেকগুলো ছবি কনভার্ট করার সুবিধা।</li>
+                <li>কোনো সাইন-আপ বা টাকা লাগে না।</li>
+            </ul>
+        </article>
+
+        <div id="ad-container" class="mt-10 text-center border-t pt-6">
+            <p class="text-xs text-gray-400 mb-2 font-semibold uppercase tracking-widest">Sponsored Content</p>
+            <div class="bg-gray-200 h-32 flex items-center justify-center rounded">
+                <span>Place Your Ad Here</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { jsPDF } = window.jspdf;
+        const fileInput = document.getElementById('fileInput');
+        const preview = document.getElementById('preview');
+        const convertBtn = document.getElementById('convertBtn');
+        let selectedFiles = [];
+
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            selectedFiles = [...selectedFiles, ...files];
+            updatePreview();
+        });
+
+        function updatePreview() {
+            preview.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'w-20 h-20 object-cover rounded border shadow-sm';
+                    preview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+            if (selectedFiles.length > 0) convertBtn.classList.remove('hidden');
+        }
+
+        convertBtn.addEventListener('click', async () => {
+            const pdf = new jsPDF();
+            convertBtn.innerText = "Processing...";
+            
+            for (let i = 0; i < selectedFiles.length; i++) {
+                const file = selectedFiles[i];
+                const imageData = await readFileAsDataURL(file);
+                
+                const img = new Image();
+                img.src = imageData;
+                await new Promise(resolve => img.onload = resolve);
+
+                const imgProps = pdf.getImageProperties(img);
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+                if (i > 0) pdf.addPage();
+                pdf.addImage(imageData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+            }
+
+            pdf.save("Converted-Files.pdf");
+            convertBtn.innerText = "Generate PDF Now";
+        });
+
+        function readFileAsDataURL(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
+</body>
+</html>
